@@ -1,16 +1,25 @@
 #![allow(unused)]
 use ark_bls12_381::{Bls12_381, Fr, FrConfig, G1Affine};
+use ark_ec::pairing;
 use ark_ff::UniformRand;
 use ark_ff::{Fp, MontBackend, PrimeField};
-use ark_poly::{EvaluationDomain, Radix2EvaluationDomain};
+use ark_poly::{EvaluationDomain, Radix2EvaluationDomain, DenseUVPolynomial};
 
-fn main() {}
+fn main() {
+    let secret = generate_polynomial(12);
+    println!("{:?}", secret);
+    let mut rng = ark_std::test_rng();
+    let val = Fr::rand(&mut rng);
+
+}
 
 /// Represents the group elements for commitment and proof.
 struct KZGparams {
     commitment: G1Affine,
     proof: G1Affine,
 }
+
+fn verification() {}
 
 /// Function to generate [s^i]1 , [s^i]2
 /// These will be provided to the prover and verifier.
@@ -29,6 +38,10 @@ fn generate_polynomial(n: i32) -> Vec<Fp<MontBackend<FrConfig, 4>, 4>> {
     let poly = domain.fft(&mut store);
     poly
 }
+
+// understanding the need to use lagrange basis for everything here, also
+// and no need to take .fft here ig 
+
 
 /// Secret Generation
 /// Currently just using the rand function, but can simulate a MPC also.
