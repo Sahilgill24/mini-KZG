@@ -9,13 +9,13 @@ use ark_ec::AffineRepr;
 use ark_ec::short_weierstrass::Projective;
 use ark_ff::{BigInt, UniformRand};
 use ark_ff::{Fp, MontBackend, PrimeField};
-use ark_poly::DenseUVPolynomial;
 use ark_poly::univariate::DensePolynomial;
+use ark_poly::{DenseUVPolynomial, Polynomial};
 
 /// Secret Generation
 /// Currently just using the rand function, but can simulate a MPC also.
 /// Obviously this is a scalar
-fn generate_secret() -> Fp<MontBackend<FrConfig, 4>, 4> {
+pub fn generate_secret() -> Fp<MontBackend<FrConfig, 4>, 4> {
     let mut rng = ark_std::test_rng();
     let secret = Fr::rand(&mut rng);
     secret
@@ -38,7 +38,7 @@ pub fn powers_of_s(
     let mut store2 = Vec::new();
     let mut temp = Fr::new(BigInt::one());
 
-    for i in 0..n {
+    for _i in 0..n {
         store1.push(g1.mul_bigint(temp.into_bigint()));
         store2.push(g2.mul_bigint(temp.into_bigint()));
         temp = temp * secret;
@@ -49,9 +49,9 @@ pub fn powers_of_s(
 
 /// n is the degree of the polynomial
 /// whether to use radix poly's or to use DensePolynomials
-///
-fn generate_polynomial(n: i32) -> Vec<Fp<MontBackend<FrConfig, 4>, 4>> {
+
+pub fn generate_polynomial(n: i32) -> Vec<Fp<MontBackend<FrConfig, 4>, 4>> {
     let mut rng = ark_std::test_rng();
-    let poly = DensePolynomial::rand(n as usize, &mut rng);
+    let poly = DensePolynomial::rand((n - 1) as usize, &mut rng);
     poly.to_vec()
 }
