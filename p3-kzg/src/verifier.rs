@@ -16,7 +16,7 @@ use ark_ff::{Fp, MontBackend, PrimeField};
 /// H: Generator for G2 group
 /// pi: proof
 /// [s-z]2: s2 - z2 (z implemented at G2Affine group)
-pub fn verify(
+pub fn verify_proof(
     evaluation_points: (
         Fp<MontBackend<FrConfig, 4>, 4>,
         Fp<MontBackend<FrConfig, 4>, 4>,

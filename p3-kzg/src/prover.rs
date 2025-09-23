@@ -53,7 +53,6 @@ pub fn generate_proof(
     let mut rng = ark_std::test_rng();
     let mut proof: Projective<Config> = G1Projective::rand(&mut rng);
     let extra = proof;
-    assert_eq!(s1.len(), quotient.len());
     for i in 0..quotient.len() {
         proof += s1[i].mul_bigint(quotient[i].into_bigint());
     }
