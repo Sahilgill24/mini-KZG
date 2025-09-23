@@ -55,3 +55,19 @@ pub fn generate_polynomial(n: i32) -> Vec<Fp<MontBackend<FrConfig, 4>, 4>> {
     let poly = DensePolynomial::rand((n - 1) as usize, &mut rng);
     poly.to_vec()
 }
+
+/// evaluate the polynomial at z (convert z to a group element before though)
+/// and find the value P(z)
+/// q(x) = (p(x) -y )/ (x - z)
+pub fn evaluate_polynomial(
+    polynomial: Vec<Fp<MontBackend<FrConfig, 4>, 4>>,
+    z: i32,
+) -> (
+    Fp<MontBackend<FrConfig, 4>, 4>,
+    Fp<MontBackend<FrConfig, 4>, 4>,
+) {
+    let poly = DensePolynomial::from_coefficients_vec(polynomial);
+    let y = poly.evaluate(&Fr::new(BigInt::from(z as u64)));
+    let z_group = Fr::from(BigInt::from(z as u64));
+    (z_group, y)
+}
