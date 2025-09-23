@@ -31,9 +31,8 @@ pub fn powers_of_s(
     n: i32,
     secret: Fp<MontBackend<FrConfig, 4>, 4>,
 ) -> (Vec<Projective<Config>>, Vec<Projective<cfg>>) {
-    let mut rng = ark_std::test_rng();
-    let g1 = G1Affine::rand(&mut rng);
-    let g2 = G2Affine::rand(&mut rng);
+    let g1 = G1Affine::generator();
+    let g2 = G2Affine::generator();
     let mut store1 = Vec::new();
     let mut store2 = Vec::new();
     let mut temp = Fr::new(BigInt::one());

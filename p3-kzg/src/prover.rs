@@ -1,5 +1,3 @@
-use core::num;
-
 // Generates the Commitment
 // And the proof as well
 use ark_bls12_381::g1::Config;
