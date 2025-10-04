@@ -3,7 +3,7 @@
 use ark_bls12_381::g1::Config as cfg1;
 
 use ark_bls12_381::g2::Config as cfg;
-use ark_bls12_381::{Bls12_381, Config, Fr, FrConfig, G1Affine, G2Affine};
+use ark_bls12_381::{Config, FrConfig, G1Affine, G2Affine};
 use ark_ec::AffineRepr;
 use ark_ec::bls12::Bls12;
 use ark_ec::pairing::{Pairing, PairingOutput};

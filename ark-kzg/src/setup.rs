@@ -68,5 +68,6 @@ pub fn evaluate_polynomial(
     let poly = DensePolynomial::from_coefficients_vec(polynomial);
     let y = poly.evaluate(&Fr::new(BigInt::from(z as u64)));
     let z_group = Fr::from(BigInt::from(z as u64));
+    // z, p(z)
     (z_group, y)
 }

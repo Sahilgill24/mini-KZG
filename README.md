@@ -1,3 +1,4 @@
 ## KZG commitments using Arkworks
 
-Minimalistic KZG commitments for my Personal Learning, using Arkworks and Plonky-3. 
+Implementing KZG PCS scheme using Arkworks. 
+along with explaining MSM and other tools like pairings to explain it. 
