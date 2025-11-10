@@ -1,16 +1,7 @@
-use ark_bls12_381::G1Affine;
-use ark_bls12_381::g1::Config;
-use ark_ec::short_weierstrass::Projective;
 
 use ark_kzg::prover::{generate_commitment, generate_proof};
 use ark_kzg::setup::{evaluate_polynomial, generate_polynomial, generate_secret, powers_of_s};
 use ark_kzg::verifier::verify_proof;
-
-/// Represents the group elements for commitment and proof.
-struct KZGparams<'a> {
-    commitment: Projective<Config>,
-    proof: &'a G1Affine,
-}
 
 fn main() {
     let n = 9;
@@ -32,7 +23,3 @@ fn main() {
     println!("{:?}", val);
 }
 
-// whole process is very simple
-// G1, G2 already there
-// [p] calculation has to be done to get the commitment
-// then to generate the proof,

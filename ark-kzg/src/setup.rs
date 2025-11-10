@@ -12,6 +12,9 @@ use ark_ff::{Fp, MontBackend, PrimeField};
 use ark_poly::univariate::DensePolynomial;
 use ark_poly::{DenseUVPolynomial, Polynomial};
 
+type PolyCoeffs = Vec<Fp<MontBackend<FrConfig, 4>, 4>>;
+type Scalar = Fp<MontBackend<FrConfig, 4>, 4>;
+
 /// Secret Generation
 /// Currently just using the rand function, but can simulate a MPC also.
 /// Obviously this is a scalar
@@ -49,7 +52,7 @@ pub fn powers_of_s(
 /// n is the degree of the polynomial
 /// whether to use radix poly's or to use DensePolynomials
 
-pub fn generate_polynomial(n: i32) -> Vec<Fp<MontBackend<FrConfig, 4>, 4>> {
+pub fn generate_polynomial(n: i32) -> PolyCoeffs {
     let mut rng = ark_std::test_rng();
     let poly = DensePolynomial::rand((n - 1) as usize, &mut rng);
     poly.to_vec()
@@ -59,7 +62,7 @@ pub fn generate_polynomial(n: i32) -> Vec<Fp<MontBackend<FrConfig, 4>, 4>> {
 /// and find the value P(z)
 /// q(x) = (p(x) -y )/ (x - z)
 pub fn evaluate_polynomial(
-    polynomial: Vec<Fp<MontBackend<FrConfig, 4>, 4>>,
+    polynomial: PolyCoeffs,
     z: i32,
 ) -> (
     Fp<MontBackend<FrConfig, 4>, 4>,
