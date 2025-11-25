@@ -1,25 +1,27 @@
-
+use ark_bls12_381::Fr;
+use ark_kzg::error::Result;
 use ark_kzg::prover::{generate_commitment, generate_proof};
 use ark_kzg::setup::{evaluate_polynomial, generate_polynomial, generate_secret, powers_of_s};
 use ark_kzg::verifier::verify_proof;
 
-fn main() {
-    let n = 9;
-    let secret = generate_secret();
-    let polynomial = generate_polynomial(n);
-    let polynomial2 = polynomial.clone();
-    let p3 = polynomial.clone();
-    let powers_of_s = powers_of_s(n, secret);
-    let ps2 = powers_of_s.clone();
-    let ps3 = powers_of_s.clone();
-    let commitment = generate_commitment(polynomial, powers_of_s);
-    let evaluation_points = evaluate_polynomial(polynomial2, 23);
-    let proof = generate_proof(p3, ps2, evaluation_points);
-    let val = verify_proof(evaluation_points, commitment, proof, ps3);
-    println!("{:?}", commitment);
-    println!("{:?}", secret);
-    println!("{:?}", evaluation_points);
-    println!("{:?}", proof);
-    println!("{:?}", val);
-}
+fn main() -> Result<()> {
+    let max_degree = 8;
+    let srs_size = max_degree + 1;
 
+    let secret = generate_secret();
+    let srs = powers_of_s(srs_size, secret);
+
+    let polynomial = generate_polynomial(max_degree);
+
+    let commitment = generate_commitment(&polynomial, &srs)?;
+
+    let z = Fr::from(23u64);
+    let (eval_point, eval_value) = evaluate_polynomial(&polynomial, &z);
+
+    let proof = generate_proof(&polynomial, &srs, &eval_point, &eval_value)?;
+
+    let is_valid = verify_proof(&eval_point, &eval_value, &commitment, &proof, &srs);
+    println!("{}", is_valid);
+
+    Ok(())
+}

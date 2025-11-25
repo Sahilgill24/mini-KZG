@@ -1,70 +1,71 @@
-// Generates the Commitment
-// And the proof as well
-use ark_bls12_381::g1::Config;
-
-use ark_bls12_381::g2::Config as cfg;
-use ark_bls12_381::{Fr, FrConfig, G1Projective};
-
+use ark_bls12_381::{Fr, G1Projective};
 use ark_ec::PrimeGroup;
-use ark_ec::short_weierstrass::Projective;
-use ark_ff::{Field, UniformRand};
-use ark_ff::{Fp, MontBackend, PrimeField};
+use ark_ff::{PrimeField, Zero};
 use ark_poly::DenseUVPolynomial;
 use ark_poly::univariate::{DenseOrSparsePolynomial, DensePolynomial};
 
-/// [c] = summation pi * [s]1 * i
-pub fn generate_commitment(
-    polynomial: Vec<Fp<MontBackend<FrConfig, 4>, 4>>,
-    powers_of_s: (Vec<Projective<Config>>, Vec<Projective<cfg>>),
-) -> Projective<ark_bls12_381::g1::Config> {
-    let s1 = powers_of_s.0;
-    let mut rng = ark_std::test_rng();
-    let mut commitment: Projective<Config> = G1Projective::rand(&mut rng);
-    let extra = commitment;
-    assert_eq!(polynomial.len(), s1.len());
-    for i in 0..polynomial.len() {
-        commitment += s1[i].mul_bigint(polynomial[i].into_bigint());
+use crate::error::{KzgError, Result};
+use crate::setup::{PolyCoeffs, SRS};
+
+/// Generates the commitment
+/// c = [P(s)]1
+/// c = summation pi. [s^i]G1
+pub fn generate_commitment(polynomial: &PolyCoeffs, srs: &SRS) -> Result<G1Projective> {
+    // [s^i]G1
+    let srs1 = &srs.0;
+
+    if polynomial.len() > srs1.len() {
+        return Err(KzgError::PolynomialLengthMismatch {
+            polynomial_len: polynomial.len(),
+            powers_len: srs1.len(),
+        });
     }
-    commitment - extra
+
+    let commitment = polynomial
+        .iter()
+        .zip(srs1.iter())
+        .map(|(coeff, power)| power.mul_bigint(coeff.into_bigint()))
+        .sum();
+
+    Ok(commitment)
 }
 
-/// [q]1 this is the kzg proof.
-/// sigma qi.[si]
-/// q(x) = ( P(x) - P(z) )/ (x - z )
-pub fn generate_proof(
-    polynomial: Vec<Fp<MontBackend<FrConfig, 4>, 4>>,
-    powers_of_s: (Vec<Projective<Config>>, Vec<Projective<cfg>>),
-    evaluation_points: (
-        Fp<MontBackend<FrConfig, 4>, 4>,
-        Fp<MontBackend<FrConfig, 4>, 4>,
-    ),
-) -> Projective<ark_bls12_381::g1::Config> {
-    // p(x)
-    let mut poly = polynomial;
-    // [s]1
-    let s1 = powers_of_s.0;
-    // z
-    let z = evaluation_points.0;
-    // y = p(z)
-    let y = evaluation_points.1;
-    poly[0 as usize] = poly[0 as usize] - y;
-    let one = Fr::ONE;
-    let store2 = vec![-z, one];
-    // X - z
-    let denominator = DensePolynomial::from_coefficients_vec(store2);
-    // P(x) - P(z)
-    let numerator = DensePolynomial::from_coefficients_vec(poly);
-    // now q(x) = numerator/ denominator simply
-    let q = DenseOrSparsePolynomial::divide_with_q_and_r(&numerator.into(), &denominator.into());
-    let quotient = q.unwrap().0.to_vec();
-    // rng
-    let mut rng = ark_std::test_rng();
-    // proof
-    let mut proof: Projective<Config> = G1Projective::rand(&mut rng);
-    let extra = proof;
-    for i in 0..quotient.len() {
-        // s
-        proof += s1[i].mul_bigint(quotient[i].into_bigint());
+/// Generate a KZG evaluation proof.
+/// Computes the quotient polynomial q(x) = (P(x) - P(z)) / (x - z)
+/// and returns the proof [q(s)]₁.
+pub fn generate_proof(polynomial: &PolyCoeffs, srs: &SRS, z: &Fr, y: &Fr) -> Result<G1Projective> {
+    let srs1 = &srs.0;
+
+    // P(x)- P(z)
+    let mut adjusted_poly = polynomial.clone();
+    adjusted_poly[0] -= y;
+
+    // x-z
+    let divisor = DensePolynomial::from_coefficients_vec(vec![-*z, Fr::from(1u64)]);
+
+    // represent P(x) - P(z) as a polynomial
+    let numerator = DensePolynomial::from_coefficients_vec(adjusted_poly);
+
+    // q(x) = (P(x) - P(z)) / (x - z)
+    let division_result =
+        DenseOrSparsePolynomial::divide_with_q_and_r(&numerator.into(), &divisor.into());
+
+    let (quotient, remainder) = division_result.ok_or(KzgError::PolynomialDivisionFailed)?;
+
+    // All the coeffecients of the remainder should be zero 
+    if remainder.coeffs.iter().any(|c| !c.is_zero()) {
+        return Err(KzgError::PolynomialDivisionFailed);
     }
-    proof - extra
+
+    let quotient_coeffs = quotient.coeffs;
+
+    // proof [q(s)]1
+    // summation qi . [s^i]G1
+    let proof = quotient_coeffs
+        .iter()
+        .zip(srs1.iter())
+        .map(|(coeff, power)| power.mul_bigint(coeff.into_bigint()))
+        .sum();
+
+    Ok(proof)
 }
