@@ -1,4 +1,5 @@
-## KZG commitments using Arkworks
+## KZG Polynomial Commitment Scheme 
 
-Implementing KZG PCS scheme using Arkworks. 
-along with explaining MSM and other tools like pairings to explain it. 
+This is a minimalistic implementation of the KZG polynomial commitment scheme along with its formal verification. 
+
+
